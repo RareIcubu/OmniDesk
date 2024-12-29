@@ -13,6 +13,7 @@ import (
 // FileItem przechowuje nazwę pliku/podfolderu i informację, czy to folder.
 type FileItem struct {
 	Name  string
+    Path string
 	IsDir bool
 }
 
@@ -58,6 +59,7 @@ func UpdateList(listable fyne.ListableURI, items *[]FileItem, list *widget.List,
 		*items = append(*items, FileItem{
 			Name:  child.Name(),
 			IsDir: isDir,
+            Path: child.Path(),
 		})
 	}
 
