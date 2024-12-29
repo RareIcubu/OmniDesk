@@ -10,13 +10,13 @@ import (
 
 func TestSortItems(t *testing.T) {
 	items := []fileops.FileItem{
-		{Name: "file1.txt", IsDir: false}, // Zmieniono `name` na `Name` i `isDir` na `IsDir`
+		{Name: "file1.txt", IsDir: false},
 		{Name: "folder1", IsDir: true},
 		{Name: "file2.txt", IsDir: false},
 		{Name: "folder2", IsDir: true},
 	}
 	expected := []fileops.FileItem{
-		{Name: "folder1", IsDir: true},   // Zmieniono `name` na `Name` i `isDir` na `IsDir`
+		{Name: "folder1", IsDir: true},  
 		{Name: "folder2", IsDir: true},
 		{Name: "file1.txt", IsDir: false},
 		{Name: "file2.txt", IsDir: false},
