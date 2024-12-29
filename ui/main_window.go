@@ -21,7 +21,7 @@ func NewMainWindow(a fyne.App) fyne.Window {
 	myWindow.CenterOnScreen()
 
 	// Lista elementów w folderze.
-	var items []fileops.FileItem	
+	var items []fileops.FileItem
 	// Tworzenie listy z ikonami
 	list := widget.NewList(
 		func() int {
@@ -80,6 +80,14 @@ currentPath := "." // Bieżąca ścieżka katalogu
 		fmt.Printf("Wybrano element: %s\n", items[id].Name)
 	}
 
+	// Przywracamy funkcję `OpenFolderDialog` z fileops/file_opener.go
+	openFolder := func() {
+		fileops.OpenFolderDialog(myWindow, &items, list)
+	}
+
+	// Przycisk "Otwórz folder" wywołujący OpenFolderDialog
+	folderButton := widget.NewButton("Otwórz folder", openFolder)
+
 	// Przycisk "Wejdź do folderu"
 	enterButton := widget.NewButton("Wejdź", func() {
 		if selectedIndex >= 0 && items[selectedIndex].IsDir {
@@ -115,10 +123,18 @@ currentPath := "." // Bieżąca ścieżka katalogu
 		list.Refresh()
 	})
 
+	// Dodajemy ShowFolderDialog również w menu
+	fileMenu := fyne.NewMenu("Plik",
+		fyne.NewMenuItem("Otwórz folder", openFolder),
+	)
+
+	// Dodajemy menu do okna
+	myWindow.SetMainMenu(fyne.NewMainMenu(fileMenu))
+
 	// Layout główny: przyciski na dole + lista
 	layout := container.NewBorder(
 		widget.NewLabel("File Manager"),
-		container.NewHBox(backButton, enterButton, infoButton, sortButton),
+		container.NewHBox(backButton, enterButton, infoButton, folderButton, sortButton),
 		nil,
 		nil,
 		list,
