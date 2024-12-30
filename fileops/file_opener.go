@@ -1,11 +1,14 @@
 package fileops
 
 import (
+	"os"
+	"path/filepath"
+
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/storage"
-	"fyne.io/fyne/v2/widget"
 	"fyne.io/fyne/v2/theme"
+	"fyne.io/fyne/v2/widget"
 	"fyne.io/fyne/v2/container"
 	"sort"
 )
@@ -13,17 +16,8 @@ import (
 // FileItem przechowuje nazwę pliku/podfolderu i informację, czy to folder.
 type FileItem struct {
 	Name  string
-    Path string
+	Path  string
 	IsDir bool
-}
-
-// CreateFileMenu tworzy menu z opcją do wybrania folderu i wyświetlenia w liście.
-func CreateFileMenu(win fyne.Window, items *[]FileItem, list *widget.List) *fyne.Menu {
-	return fyne.NewMenu("File Manager",
-		fyne.NewMenuItem("List Folder", func() {
-			OpenFolderDialog(win, items, list)
-		}),
-	)
 }
 
 // OpenFolderDialog wyświetla dialog do wyboru folderu i aktualizuje listę.
@@ -35,45 +29,63 @@ func OpenFolderDialog(win fyne.Window, items *[]FileItem, list *widget.List) {
 				return
 			}
 			if listable != nil {
-				UpdateList(listable, items, list, win)
+				UpdateListFromURI(listable, items, list, win)
 			}
 		},
 		win,
 	)
 }
 
-// UpdateList odczytuje zawartość folderu, aktualizuje slice `items` i odświeża listę.
-func UpdateList(listable fyne.ListableURI, items *[]FileItem, list *widget.List, win fyne.Window) {
+// UpdateListFromURI aktualizuje listę na podstawie URI.
+func UpdateListFromURI(listable fyne.ListableURI, items *[]FileItem, list *widget.List, win fyne.Window) {
 	children, err := listable.List()
 	if err != nil {
 		dialog.ShowError(err, win)
 		return
 	}
 
-	*items = (*items)[:0]
-
+	*items = []FileItem{}
 	for _, child := range children {
-		_, listerErr := storage.ListerForURI(child)
-		isDir := (listerErr == nil)
+		isDir := false
+		if _, err := storage.ListerForURI(child); err == nil {
+			isDir = true
+		}
 
 		*items = append(*items, FileItem{
 			Name:  child.Name(),
+			Path:  child.Path(),
 			IsDir: isDir,
-            Path: child.Path(),
 		})
 	}
-
 	list.Refresh()
 }
 
+// UpdateList aktualizuje listę na podstawie ścieżki.
+func UpdateList(path string, items *[]FileItem) error {
+	files, err := os.ReadDir(path)
+	if err != nil {
+		return err
+	}
+
+	*items = []FileItem{}
+	for _, file := range files {
+		*items = append(*items, FileItem{
+			Name:  file.Name(),
+			Path:  filepath.Join(path, file.Name()),
+			IsDir: file.IsDir(),
+		})
+	}
+	return nil
+}
+
 // CreateList tworzy widget.List dla wyświetlania plików i folderów.
-func CreateList(items *[]FileItem) *widget.List {
+func CreateList(items *[]FileItem, selectedIndex *int) *widget.List {
 	return widget.NewList(
 		func() int {
 			return len(*items)
 		},
 		func() fyne.CanvasObject {
-			icon := widget.NewIcon(theme.FileIcon())
+			icon := widget.NewIcon(nil)
 			label := widget.NewLabel("")
 			return container.NewHBox(icon, label)
 		},
@@ -82,13 +94,13 @@ func CreateList(items *[]FileItem) *widget.List {
 			icon := container.Objects[0].(*widget.Icon)
 			label := container.Objects[1].(*widget.Label)
 
-			fi := (*items)[id]
-			if fi.IsDir {
+			item := (*items)[id]
+			if item.IsDir {
 				icon.SetResource(theme.FolderIcon())
 			} else {
 				icon.SetResource(theme.FileIcon())
 			}
-			label.SetText(fi.Name)
+			label.SetText(item.Name)
 		},
 	)
 }
