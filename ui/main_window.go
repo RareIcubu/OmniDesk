@@ -2,12 +2,13 @@ package ui
 
 import (
 	"fmt"
+	"path/filepath"
+
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/widget"
 	"file_manager/fileops"
-	"path/filepath"
 )
 
 // NewMainWindow tworzy główne okno aplikacji.
@@ -91,28 +92,11 @@ func createButtons(
 		fileops.OpenFolderDialog(myWindow, items, list)
 	})
 
-	searchEntry := widget.NewEntry()
-	searchEntry.SetPlaceHolder("Wyszukaj plik...")
 	searchButton := widget.NewButton("Szukaj", func() {
-		search := searchEntry.Text
-		if search == "" {
-			dialog.ShowInformation("Błąd", "Wpisz nazwę pliku", myWindow)
-			return
-		}
-
-		var results []fileops.FileItem
-		fileops.SearchFile(myWindow, *currentPath, search, false, &results)
-
-		if len(results) == 0 {
-			dialog.ShowInformation("Wynik", "Nie znaleziono żadnych plików", myWindow)
-			return
-		}
-
-		*items = results
-		list.Refresh()
+		showSearchDialog(myWindow, *currentPath, items, list)
 	})
 
-	return container.NewHBox(backButton, enterButton, infoButton, folderButton, sortButton, searchEntry, searchButton)
+	return container.NewHBox(backButton, enterButton, infoButton, folderButton, sortButton, searchButton)
 }
 
 // createFileMenu tworzy menu "Plik".
@@ -142,4 +126,30 @@ func updateList(
 	list.Refresh()
 }
 
+// showSearchDialog otwiera okno dialogowe do wyszukiwania plików.
+func showSearchDialog(myWindow fyne.Window, currentPath string, items *[]fileops.FileItem, list *widget.List) {
+	searchEntry := widget.NewEntry()
+	searchEntry.SetPlaceHolder("Wpisz nazwę pliku...")
+	searchButton := widget.NewButton("Szukaj", func() {
+		search := searchEntry.Text
+		if search == "" {
+			dialog.ShowInformation("Błąd", "Wpisz nazwę pliku!", myWindow)
+			return
+		}
+
+		var results []fileops.FileItem
+		fileops.SearchFile(myWindow, currentPath, search, false, &results)
+
+		if len(results) == 0 {
+			dialog.ShowInformation("Wynik", "Nie znaleziono żadnych plików!", myWindow)
+			return
+		}
+
+		*items = results
+		list.Refresh()
+	})
+
+	content := container.NewVBox(searchEntry, searchButton)
+	dialog.ShowCustom("Wyszukiwanie", "Zamknij", content, myWindow)
+}
 
