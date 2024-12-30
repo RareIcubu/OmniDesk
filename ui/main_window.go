@@ -22,13 +22,15 @@ func NewMainWindow(a fyne.App) fyne.Window {
 
 	// Lista elementów w folderze.
 	var items []fileops.FileItem
+	currentPath := "." // Bieżąca ścieżka katalogu
+	selectedIndex := -1
+
 	// Tworzenie listy z ikonami
 	list := widget.NewList(
 		func() int {
 			return len(items)
 		},
 		func() fyne.CanvasObject {
-			// Ikona i etykieta dla każdego elementu
 			icon := widget.NewIcon(nil)
 			label := widget.NewLabel("")
 			return container.NewHBox(icon, label)
@@ -48,10 +50,11 @@ func NewMainWindow(a fyne.App) fyne.Window {
 		},
 	)
 
-currentPath := "." // Bieżąca ścieżka katalogu
-	selectedIndex := -1
+	// Pole tekstowe do wyszukiwania
+	searchEntry := widget.NewEntry()
+	searchEntry.SetPlaceHolder("Wyszukaj plik...")
 
-	// Funkcja aktualizująca zawartość listy na podstawie bieżącej ścieżki
+	// Funkcja aktualizująca zawartość listy
 	updateList := func(path string) {
 		files, err := os.ReadDir(path)
 		if err != nil {
@@ -59,10 +62,8 @@ currentPath := "." // Bieżąca ścieżka katalogu
 			return
 		}
 
-		// Czyścimy poprzednią zawartość
 		items = []fileops.FileItem{}
 
-		// Dodajemy pliki i foldery do listy
 		for _, file := range files {
 			items = append(items, fileops.FileItem{
 				Name:  file.Name(),
@@ -70,10 +71,29 @@ currentPath := "." // Bieżąca ścieżka katalogu
 				IsDir: file.IsDir(),
 			})
 		}
-
-		// Odświeżamy listę po zmianie zawartości
 		list.Refresh()
 	}
+
+	// Obsługa wyszukiwania
+	searchButton := widget.NewButton("Szukaj", func() {
+		search := searchEntry.Text
+		if search == "" {
+			dialog.ShowInformation("Błąd", "Wpisz nazwę pliku", myWindow)
+			return
+		}
+
+		var results []fileops.FileItem
+		fileops.SearchFile(myWindow, currentPath, search, false, &results)
+
+		if len(results) == 0 {
+			dialog.ShowInformation("Wynik", "Nie znaleziono żadnych plików", myWindow)
+			return
+		}
+
+		items = results
+		list.Refresh()
+	})
+
 	// Obsługa wyboru elementu z listy
 	list.OnSelected = func(id widget.ListItemID) {
 		selectedIndex = id
@@ -85,7 +105,7 @@ currentPath := "." // Bieżąca ścieżka katalogu
 		fileops.OpenFolderDialog(myWindow, &items, list)
 	}
 
-	// Przycisk "Otwórz folder" wywołujący OpenFolderDialog
+	// Przycisk "Otwórz folder"
 	folderButton := widget.NewButton("Otwórz folder", openFolder)
 
 	// Przycisk "Wejdź do folderu"
@@ -123,17 +143,15 @@ currentPath := "." // Bieżąca ścieżka katalogu
 		list.Refresh()
 	})
 
-	// Dodajemy ShowFolderDialog również w menu
+	// Menu "Plik"
 	fileMenu := fyne.NewMenu("Plik",
 		fyne.NewMenuItem("Otwórz folder", openFolder),
 	)
-
-	// Dodajemy menu do okna
 	myWindow.SetMainMenu(fyne.NewMainMenu(fileMenu))
 
-	// Layout główny: przyciski na dole + lista
+	// Layout główny
 	layout := container.NewBorder(
-		widget.NewLabel("File Manager"),
+		container.NewAdaptiveGrid(2,searchEntry, searchButton),
 		container.NewHBox(backButton, enterButton, infoButton, folderButton, sortButton),
 		nil,
 		nil,
