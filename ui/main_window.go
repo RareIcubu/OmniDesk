@@ -20,11 +20,8 @@ func NewMainWindow(a fyne.App) fyne.Window {
 	myWindow.Resize(fyne.NewSize(800, 600))
 	myWindow.CenterOnScreen()
 
-	// Lista elementów w folderze.
+	// Lista elementów w folderze
 	var items []fileops.FileItem
-	currentPath := "." // Bieżąca ścieżka katalogu
-	selectedIndex := -1
-
 	// Tworzenie listy z ikonami
 	list := widget.NewList(
 		func() int {
@@ -50,9 +47,17 @@ func NewMainWindow(a fyne.App) fyne.Window {
 		},
 	)
 
-	// Pole tekstowe do wyszukiwania
-	searchEntry := widget.NewEntry()
-	searchEntry.SetPlaceHolder("Wyszukaj plik...")
+	// Ustawienie bieżącej ścieżki jako absolutnej
+	currentPath, err := filepath.Abs(".")
+	if err != nil {
+		dialog.ShowError(err, myWindow)
+		return myWindow
+	}
+
+	selectedIndex := -1
+
+	// Etykieta do wyświetlania bieżącej ścieżki
+	showCurrentPathLabel := widget.NewLabel(fmt.Sprintf("Ścieżka: %s", currentPath))
 
 	// Funkcja aktualizująca zawartość listy
 	updateList := func(path string) {
@@ -62,8 +67,10 @@ func NewMainWindow(a fyne.App) fyne.Window {
 			return
 		}
 
+		// Czyścimy poprzednią zawartość
 		items = []fileops.FileItem{}
 
+		// Dodajemy pliki i foldery do listy
 		for _, file := range files {
 			items = append(items, fileops.FileItem{
 				Name:  file.Name(),
@@ -71,28 +78,13 @@ func NewMainWindow(a fyne.App) fyne.Window {
 				IsDir: file.IsDir(),
 			})
 		}
+
+		// Aktualizujemy ścieżkę
+		showCurrentPathLabel.SetText(fmt.Sprintf("Ścieżka: %s", path))
+
+		// Odświeżamy listę po zmianie zawartości
 		list.Refresh()
 	}
-
-	// Obsługa wyszukiwania
-	searchButton := widget.NewButton("Szukaj", func() {
-		search := searchEntry.Text
-		if search == "" {
-			dialog.ShowInformation("Błąd", "Wpisz nazwę pliku", myWindow)
-			return
-		}
-
-		var results []fileops.FileItem
-		fileops.SearchFile(myWindow, currentPath, search, false, &results)
-
-		if len(results) == 0 {
-			dialog.ShowInformation("Wynik", "Nie znaleziono żadnych plików", myWindow)
-			return
-		}
-
-		items = results
-		list.Refresh()
-	})
 
 	// Obsługa wyboru elementu z listy
 	list.OnSelected = func(id widget.ListItemID) {
@@ -100,12 +92,10 @@ func NewMainWindow(a fyne.App) fyne.Window {
 		fmt.Printf("Wybrano element: %s\n", items[id].Name)
 	}
 
-	// Przywracamy funkcję `OpenFolderDialog` z fileops/file_opener.go
+	// Przycisk "Otwórz folder"
 	openFolder := func() {
 		fileops.OpenFolderDialog(myWindow, &items, list)
 	}
-
-	// Przycisk "Otwórz folder"
 	folderButton := widget.NewButton("Otwórz folder", openFolder)
 
 	// Przycisk "Wejdź do folderu"
@@ -120,8 +110,9 @@ func NewMainWindow(a fyne.App) fyne.Window {
 
 	// Przycisk "Wróć"
 	backButton := widget.NewButton("Wróć", func() {
-		if currentPath != "/" {
-			currentPath = filepath.Dir(currentPath)
+		parentPath := filepath.Dir(currentPath)
+		if parentPath != currentPath { // Jeśli nie jesteśmy w katalogu głównym
+			currentPath = parentPath
 			updateList(currentPath)
 		} else {
 			dialog.ShowInformation("Info", "Już jesteś w katalogu głównym!", myWindow)
@@ -143,6 +134,30 @@ func NewMainWindow(a fyne.App) fyne.Window {
 		list.Refresh()
 	})
 
+	// Pole tekstowe do wyszukiwania
+	searchEntry := widget.NewEntry()
+	searchEntry.SetPlaceHolder("Wyszukaj plik...")
+
+	// Obsługa wyszukiwania
+	searchButton := widget.NewButton("Szukaj", func() {
+		search := searchEntry.Text
+		if search == "" {
+			dialog.ShowInformation("Błąd", "Wpisz nazwę pliku", myWindow)
+			return
+		}
+
+		var results []fileops.FileItem
+		fileops.SearchFile(myWindow, currentPath, search, false, &results)
+
+		if len(results) == 0 {
+			dialog.ShowInformation("Wynik", "Nie znaleziono żadnych plików", myWindow)
+			return
+		}
+
+		items = results
+		list.Refresh()
+	})
+
 	// Menu "Plik"
 	fileMenu := fyne.NewMenu("Plik",
 		fyne.NewMenuItem("Otwórz folder", openFolder),
@@ -151,7 +166,7 @@ func NewMainWindow(a fyne.App) fyne.Window {
 
 	// Layout główny
 	layout := container.NewBorder(
-		container.NewAdaptiveGrid(2,searchEntry, searchButton),
+		container.NewVBox(showCurrentPathLabel, searchEntry, searchButton),
 		container.NewHBox(backButton, enterButton, infoButton, folderButton, sortButton),
 		nil,
 		nil,
