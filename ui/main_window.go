@@ -7,6 +7,7 @@ import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/dialog"
+	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 	"file_manager/fileops"
 )
@@ -24,16 +25,24 @@ func NewMainWindow(a fyne.App) fyne.Window {
 
 	// Elementy UI
 	showCurrentPathLabel := widget.NewLabel(fmt.Sprintf("Ścieżka: %s", currentPath))
-	list := fileops.CreateList(&items, &selectedIndex)
-	buttons := createButtons(myWindow, &currentPath, &items, list, &selectedIndex, showCurrentPathLabel)
+	list := createFileList(&items, &selectedIndex)
+
+	// Deklaracja kontenera wyszukiwania, aby był widoczny globalnie w tej funkcji
+	var searchContainer *fyne.Container
+
+	// Inicjalizacja kontenera wyszukiwania
+	searchContainer = createSearchContainer(myWindow, &currentPath, &items, list, searchContainer)
+
+	// Przyciski
+	buttons := createButtons(myWindow, &currentPath, &items, list, &selectedIndex, showCurrentPathLabel, searchContainer)
 
 	// Tworzymy menu
 	fileMenu := createFileMenu(myWindow, &items, list)
 	myWindow.SetMainMenu(fyne.NewMainMenu(fileMenu))
 
-	// Layout główny
+	// Układ główny
 	layout := container.NewBorder(
-		container.NewVBox(showCurrentPathLabel),
+		container.NewVBox(showCurrentPathLabel, searchContainer),
 		buttons,
 		nil,
 		nil,
@@ -47,6 +56,45 @@ func NewMainWindow(a fyne.App) fyne.Window {
 	return myWindow
 }
 
+// createFileList tworzy listę plików i folderów z obsługą `OnSelected`.
+func createFileList(items *[]fileops.FileItem, selectedIndex *int) *widget.List {
+	list := widget.NewList(
+		func() int {
+			return len(*items)
+		},
+		func() fyne.CanvasObject {
+			icon := widget.NewIcon(nil)
+			label := widget.NewLabel("")
+			return container.NewHBox(icon, label)
+		},
+		func(id widget.ListItemID, obj fyne.CanvasObject) {
+			item := (*items)[id]
+			container := obj.(*fyne.Container)
+			icon := container.Objects[0].(*widget.Icon)
+			label := container.Objects[1].(*widget.Label)
+
+			if item.IsDir {
+				icon.SetResource(theme.FolderIcon())
+			} else {
+				icon.SetResource(theme.DocumentIcon())
+			}
+			label.SetText(item.Name)
+		},
+	)
+
+	// Obsługa wyboru elementu z listy
+	list.OnSelected = func(id widget.ListItemID) {
+		if id >= 0 && id < len(*items) {
+			*selectedIndex = id
+			fmt.Printf("Wybrano element: %s\n", (*items)[id].Name)
+		} else {
+			*selectedIndex = -1 // Resetujemy index, jeśli nic nie jest wybrane
+		}
+	}
+
+	return list
+}
+
 // createButtons tworzy przyciski na dole okna.
 func createButtons(
 	myWindow fyne.Window,
@@ -55,7 +103,19 @@ func createButtons(
 	list *widget.List,
 	selectedIndex *int,
 	showCurrentPathLabel *widget.Label,
+	searchContainer *fyne.Container,
 ) *fyne.Container {
+	folderButton := widget.NewButton("Otwórz folder", func() {
+		fileops.OpenFolderDialog(myWindow, items, list)
+	})
+	enterButton := widget.NewButton("Wejdź", func() {
+		if *selectedIndex >= 0 && (*items)[*selectedIndex].IsDir {
+			*currentPath = (*items)[*selectedIndex].Path
+			updateList(myWindow, currentPath, items, list, showCurrentPathLabel)
+		} else {
+			dialog.ShowInformation("Błąd", "Wybierz folder, aby do niego wejść!", myWindow)
+		}
+	})
 	backButton := widget.NewButton("Wróć", func() {
 		parentPath := filepath.Dir(*currentPath)
 		if parentPath != *currentPath {
@@ -65,35 +125,19 @@ func createButtons(
 			dialog.ShowInformation("Info", "Już jesteś w katalogu głównym!", myWindow)
 		}
 	})
-
-	enterButton := widget.NewButton("Wejdź", func() {
-		if *selectedIndex >= 0 && (*items)[*selectedIndex].IsDir {
-			*currentPath = (*items)[*selectedIndex].Path
-			updateList(myWindow, currentPath, items, list, showCurrentPathLabel)
-		} else {
-			dialog.ShowInformation("Błąd", "Wybierz folder, aby do niego wejść!", myWindow)
-		}
-	})
-
 	infoButton := widget.NewButton("Info", func() {
-		if *selectedIndex >= 0 {
+		if *selectedIndex >= 0 && *selectedIndex < len(*items) {
 			fileops.FileInfoDialog(myWindow, (*items)[*selectedIndex].Path)
 		} else {
 			dialog.ShowInformation("Błąd", "Wybierz element, aby zobaczyć szczegóły!", myWindow)
 		}
 	})
-
 	sortButton := widget.NewButton("Sortuj", func() {
 		fileops.SortItems(items)
 		list.Refresh()
 	})
-
-	folderButton := widget.NewButton("Otwórz folder", func() {
-		fileops.OpenFolderDialog(myWindow, items, list)
-	})
-
 	searchButton := widget.NewButton("Szukaj", func() {
-		showSearchDialog(myWindow, *currentPath, items, list)
+		searchContainer.Show()
 	})
 
 	return container.NewHBox(backButton, enterButton, infoButton, folderButton, sortButton, searchButton)
@@ -126,10 +170,17 @@ func updateList(
 	list.Refresh()
 }
 
-// showSearchDialog otwiera okno dialogowe do wyszukiwania plików.
-func showSearchDialog(myWindow fyne.Window, currentPath string, items *[]fileops.FileItem, list *widget.List) {
+// createSearchContainer tworzy wysuwany pasek wyszukiwania.
+func createSearchContainer(
+	myWindow fyne.Window,
+	currentPath *string,
+	items *[]fileops.FileItem,
+	list *widget.List,
+	searchContainer *fyne.Container,
+) *fyne.Container {
 	searchEntry := widget.NewEntry()
 	searchEntry.SetPlaceHolder("Wpisz nazwę pliku...")
+
 	searchButton := widget.NewButton("Szukaj", func() {
 		search := searchEntry.Text
 		if search == "" {
@@ -138,7 +189,7 @@ func showSearchDialog(myWindow fyne.Window, currentPath string, items *[]fileops
 		}
 
 		var results []fileops.FileItem
-		fileops.SearchFile(myWindow, currentPath, search, false, &results)
+		fileops.SearchFile(myWindow, *currentPath, search, false, &results)
 
 		if len(results) == 0 {
 			dialog.ShowInformation("Wynik", "Nie znaleziono żadnych plików!", myWindow)
@@ -149,7 +200,13 @@ func showSearchDialog(myWindow fyne.Window, currentPath string, items *[]fileops
 		list.Refresh()
 	})
 
-	content := container.NewVBox(searchEntry, searchButton)
-	dialog.ShowCustom("Wyszukiwanie", "Zamknij", content, myWindow)
+	closeButton := widget.NewButton("Zamknij", func() {
+		searchContainer.Hide()  // Ukrywa cały kontener
+		searchEntry.SetText("") // Czyści tekst
+	})
+
+	searchContainer = container.NewVBox(searchEntry, container.NewHBox(searchButton, closeButton))
+	searchContainer.Hide() // Ukrywamy kontener na początku
+	return searchContainer
 }
 
