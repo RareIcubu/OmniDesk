@@ -22,13 +22,16 @@ type FileItem struct {
 
 // OpenFolderDialog wyświetla dialog do wyboru folderu i aktualizuje listę.
 func OpenFolderDialog(win fyne.Window, items *[]FileItem, list *widget.List) {
-	dialog.ShowFolderOpen(
+	Logger.Println("Otwarcie dialogu wyboru folderu")
+    dialog.ShowFolderOpen(
 		func(listable fyne.ListableURI, err error) {
 			if err != nil {
+                Logger.Println("Błąd podczas otwierania folderu:", err)
 				dialog.ShowError(err, win)
 				return
 			}
 			if listable != nil {
+                Logger.Printf("Otwarto folder: %s\n", listable.Path())
 				UpdateListFromURI(listable, items, list, win)
 			}
 		},

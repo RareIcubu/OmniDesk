@@ -15,7 +15,10 @@ func NewMainWindow(a fyne.App) fyne.Window {
 	myWindow.CenterOnScreen()
 
 	currentPath, _ := filepath.Abs(".")
-	var items []fileops.FileItem
+	
+    fileops.Logger.Printf("Current path %s\n", currentPath)
+    
+    var items []fileops.FileItem
 	selectedIndex := -1
 
 	// Elementy UI
