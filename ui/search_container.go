@@ -38,11 +38,12 @@ func CreateSearchContainer(
 		list.Refresh()
 	})
 
-	closeButton := widget.NewButton("Zamknij", func() {
-		searchEntry.SetText("")
-	})
+	closeButton := widget.NewButton("Zamknij", nil)
 
 	searchContainer := container.NewVBox(searchEntry, container.NewHBox(searchButton, closeButton))
+    closeButton.OnTapped = func() {
+        searchContainer.Hide()
+    }
 	searchContainer.Hide()
 	return searchContainer
 }

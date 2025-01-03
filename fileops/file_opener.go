@@ -108,16 +108,20 @@ func CreateList(items *[]FileItem, selectedIndex *int) *widget.List {
 	)
 }
 
-// SortItems sortuje listę plików i folderów: najpierw foldery, potem pliki.
 func SortItems(items *[]FileItem) {
+	if items == nil || len(*items) == 0 {
+		return // Nie ma czego sortować
+	}
+
 	sort.Slice(*items, func(i, j int) bool {
+		// Najpierw sortuj foldery przed plikami
 		if (*items)[i].IsDir && !(*items)[j].IsDir {
 			return true
 		}
 		if !(*items)[i].IsDir && (*items)[j].IsDir {
 			return false
 		}
+		// Następnie sortuj alfabetycznie
 		return (*items)[i].Name < (*items)[j].Name
 	})
 }
-
