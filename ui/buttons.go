@@ -18,7 +18,7 @@ func CreateButtons(
 	selectedIndex *int,
 	showCurrentPathLabel *widget.Label,
 	searchContainer *fyne.Container,
-	tabs *container.AppTabs,
+	tabs *container.DocTabs,
 ) *fyne.Container {
 	folderButton := widget.NewButton("Otwórz folder", func() {
 		fileops.OpenFolderDialog(myWindow, items, list)

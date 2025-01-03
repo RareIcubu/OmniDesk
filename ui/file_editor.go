@@ -3,14 +3,14 @@ package ui
 import (
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/widget"
-	"io/ioutil"
+	"os"
 	"log"
 )
 
 // OpenFileEditor creates a new tab to edit the selected file.
-func OpenFileEditor(filePath string, tabs *container.AppTabs) {
+func OpenFileEditor(filePath string, tabs *container.DocTabs) {
 	// Load file content
-	content, err := ioutil.ReadFile(filePath)
+	content, err := os.ReadFile(filePath)
 	if err != nil {
 		log.Printf("Failed to open file: %s", err)
 		return
@@ -23,7 +23,7 @@ func OpenFileEditor(filePath string, tabs *container.AppTabs) {
 	// Save button
 	saveButton := widget.NewButton("Save", func() {
 		newContent := textGrid.Text()
-		err := ioutil.WriteFile(filePath, []byte(newContent), 0644)
+		err := os.WriteFile(filePath, []byte(newContent), 0644)
 		if err != nil {
 			log.Printf("Failed to save file: %s", err)
 		}

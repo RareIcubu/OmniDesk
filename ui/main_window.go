@@ -25,7 +25,7 @@ func NewMainWindow(a fyne.App) fyne.Window {
 	searchContainer := CreateSearchContainer(myWindow, &currentPath, &items, list)
 
 	// Declare tabs first (to use it in buttons)
-	tabs := container.NewAppTabs()
+	tabs := container.NewDocTabs()
 
 	// Create buttons with tabs dependency
 	buttons := CreateButtons(myWindow, &currentPath, &items, list, &selectedIndex, showCurrentPathLabel, searchContainer, tabs)

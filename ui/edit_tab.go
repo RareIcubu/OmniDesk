@@ -10,7 +10,7 @@ import (
 )
 
 // CreateEditTabContent creates a new tab for editing the file.
-func CreateEditTabContent(myWindow fyne.Window, filePath string, tabs *container.AppTabs) fyne.CanvasObject {
+func CreateEditTabContent(myWindow fyne.Window, filePath string, tabs *container.DocTabs) fyne.CanvasObject {
 	content := widget.NewMultiLineEntry()
 	content.Wrapping = fyne.TextWrapWord
 
@@ -40,11 +40,11 @@ func CreateEditTabContent(myWindow fyne.Window, filePath string, tabs *container
 	})
 
 	// Close tab button
-	closeTabButton := widget.NewButton("Zamknij kartę", func() {
-	    tabs.RemoveIndex(tabs.SelectedIndex())
-    })
+	//closeTabButton := widget.NewButton("Zamknij kartę", func() {
+	//    tabs.RemoveIndex(tabs.SelectedIndex())
+    //})
 
-	toolbar := container.NewHBox(saveButton, closeTabButton)
+	toolbar := container.NewHBox(saveButton)
 
 	return container.NewBorder(toolbar, nil, nil, nil, content)
 }
