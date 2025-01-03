@@ -1,10 +1,12 @@
 package ui
 
 import (
+	"fmt"
 	"fyne.io/fyne/v2/widget"
 )
 
-// createCurrentPathLabel tworzy etykietę wyświetlającą bieżącą ścieżkę.
-func createCurrentPathLabel(currentPath string) *widget.Label {
-	return widget.NewLabel("Ścieżka: " + currentPath)
+// CreateCurrentPathLabel tworzy etykietę wyświetlającą bieżącą ścieżkę.
+func CreateCurrentPathLabel(currentPath string) *widget.Label {
+	return widget.NewLabel(fmt.Sprintf("Ścieżka: %s", currentPath))
 }
+

@@ -1,15 +1,16 @@
+
 package ui
 
 import (
-	"fmt"
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 	"file_manager/fileops"
+	"fmt"
 )
 
-// CreateFileList tworzy listę plików i folderów z obsługą `OnSelected`.
+// CreateFileList creates the file and folder list.
 func CreateFileList(items *[]fileops.FileItem, selectedIndex *int) *widget.List {
 	list := widget.NewList(
 		func() int {
@@ -35,7 +36,7 @@ func CreateFileList(items *[]fileops.FileItem, selectedIndex *int) *widget.List 
 		},
 	)
 
-	// Obsługa wyboru elementu z listy
+	// Handle selection
 	list.OnSelected = func(id widget.ListItemID) {
 		if id >= 0 && id < len(*items) {
 			*selectedIndex = id
@@ -47,3 +48,4 @@ func CreateFileList(items *[]fileops.FileItem, selectedIndex *int) *widget.List 
 
 	return list
 }
+

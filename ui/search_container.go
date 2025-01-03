@@ -1,3 +1,4 @@
+
 package ui
 
 import (
@@ -8,13 +9,12 @@ import (
 	"file_manager/fileops"
 )
 
-// CreateSearchContainer tworzy wysuwany pasek wyszukiwania.
+// CreateSearchContainer creates the search container.
 func CreateSearchContainer(
 	myWindow fyne.Window,
 	currentPath *string,
 	items *[]fileops.FileItem,
 	list *widget.List,
-	searchContainer *fyne.Container,
 ) *fyne.Container {
 	searchEntry := widget.NewEntry()
 	searchEntry.SetPlaceHolder("Wpisz nazwę pliku...")
@@ -39,11 +39,11 @@ func CreateSearchContainer(
 	})
 
 	closeButton := widget.NewButton("Zamknij", func() {
-		searchContainer.Hide()
 		searchEntry.SetText("")
 	})
 
-	searchContainer = container.NewVBox(searchEntry, container.NewHBox(searchButton, closeButton))
+	searchContainer := container.NewVBox(searchEntry, container.NewHBox(searchButton, closeButton))
 	searchContainer.Hide()
 	return searchContainer
 }
+

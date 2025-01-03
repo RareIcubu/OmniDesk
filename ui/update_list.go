@@ -1,15 +1,14 @@
 package ui
 
 import (
-	"fmt"
-
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/widget"
 	"file_manager/fileops"
+	"fmt"
 )
 
-// UpdateList aktualizuje zawartość listy i etykiety bieżącej ścieżki.
+// UpdateList updates the file list and current path label.
 func UpdateList(
 	myWindow fyne.Window,
 	currentPath *string,
@@ -26,3 +25,4 @@ func UpdateList(
 	showCurrentPathLabel.SetText(fmt.Sprintf("Ścieżka: %s", *currentPath))
 	list.Refresh()
 }
+
