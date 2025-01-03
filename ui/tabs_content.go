@@ -19,6 +19,7 @@ type TabState struct {
 }
 
 // CreateTabContent creates the content of a new tab.
+
 func CreateTabContent(
 	myWindow fyne.Window,
 	currentPath *string,
@@ -30,9 +31,8 @@ func CreateTabContent(
 	list := CreateFileList(items, selectedIndex)
 
 	searchContainer := CreateSearchContainer(myWindow, currentPath, items, list)
-    
-    
-    showPathLabel.SetText(*currentPath)
+
+	showPathLabel.SetText(*currentPath)
 
 	tabState := &TabState{
 		CurrentPath:   currentPath,
@@ -57,14 +57,12 @@ func CreateTabContent(
 }
 
 func UpdateTabContent(myWindow fyne.Window, state *TabState) {
-	// Aktualizujemy listę plików i folderów
 	err := fileops.UpdateList(*state.CurrentPath, state.Items)
 	if err != nil {
 		dialog.ShowError(err, myWindow)
 		return
 	}
 
-	// Odświeżamy komponent listy
 	state.List.Refresh()
 }
 

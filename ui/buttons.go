@@ -92,10 +92,30 @@ func CreateGlobalButtons(myWindow fyne.Window, tabs *container.DocTabs, tabState
 		state.List.Refresh()
 	})
 
-	openFolderButton := widget.NewButton("Otwórz folder", func() {
-		fileops.OpenFolderDialog(myWindow, nil, nil)
-	})
 
+openFolderButton := widget.NewButton("Otwórz folder", func() {
+    fileops.OpenFolderDialog(myWindow, func(listable fyne.ListableURI) {
+        if listable != nil {
+            selectedPath := listable.Path()
+
+            // Inicjalizacja listy i stanu nowej zakładki
+            var newItems []fileops.FileItem
+            newSelectedIndex := -1
+            newShowPathLabel := CreateCurrentPathLabel(selectedPath)
+
+            // Tworzymy zawartość nowej zakładki
+            newTabContent, newTabState := CreateTabContent(myWindow, &selectedPath, &newItems, &newSelectedIndex, newShowPathLabel, tabs)
+            newTab := container.NewTabItem(filepath.Base(selectedPath), newTabContent)
+
+            // Dodajemy nową zakładkę do DocTabs
+            tabs.Append(newTab)
+            tabs.Select(newTab)
+
+            // Zapisujemy stan nowej zakładki
+            tabStates[newTab] = newTabState
+        }
+    }, nil) // Obsługa anulowania dialogu (opcjonalna)
+})
 	infoButton := widget.NewButton("Info", func() {
 		currentTab := tabs.Selected()
 		if currentTab == nil {
