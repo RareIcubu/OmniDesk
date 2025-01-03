@@ -6,7 +6,7 @@ import (
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
-	"file_manager/fileops"
+	"omnidesk/fileops"
 	"fmt"
 )
 

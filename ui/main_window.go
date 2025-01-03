@@ -5,7 +5,7 @@ import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	"path/filepath"
-	"file_manager/fileops"
+	"omnidesk/fileops"
 )
 
 // NewMainWindow creates the main application window.

@@ -1,8 +1,8 @@
 package main
 
 import (
-	"file_manager/fileops"
-	"file_manager/ui"
+	"omnidesk/fileops"
+	"omnidesk/ui"
 	"fyne.io/fyne/v2/app"
 	"log"
 )

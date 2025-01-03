@@ -7,7 +7,7 @@ import (
 	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/widget"
 	"path/filepath"
-	"file_manager/fileops"
+	"omnidesk/fileops"
 )
 
 // CreateGlobalButtons creates global buttons that interact with the active tab.

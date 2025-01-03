@@ -1,7 +1,7 @@
 package ui
 
 import (
-    "file_manager/fileops"
+    "omnidesk/fileops"
 	"fmt"
     "os"
     "path/filepath"

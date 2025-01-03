@@ -3,7 +3,7 @@ package ui
 import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
-	"file_manager/fileops"
+	"omnidesk/fileops"
     "path/filepath"
     "fyne.io/fyne/v2/dialog"
 )
