@@ -1,28 +1,44 @@
 package ui
 
 import (
-	"fyne.io/fyne/v2"
-	"fyne.io/fyne/v2/dialog"
-	"fyne.io/fyne/v2/widget"
-	"file_manager/fileops"
+    "file_manager/fileops"
 	"fmt"
+    "os"
+    "path/filepath"
 )
 
-// UpdateList updates the file list and current path label.
-func UpdateList(
-	myWindow fyne.Window,
-	currentPath *string,
-	items *[]fileops.FileItem,
-	list *widget.List,
-	showCurrentPathLabel *widget.Label,
-) {
-	err := fileops.UpdateList(*currentPath, items)
-	if err != nil {
-		dialog.ShowError(err, myWindow)
-		return
+
+func UpdateList(path string, items *[]fileops.FileItem) error {
+	// Logowanie przed aktualizacją
+	fmt.Println("Przed aktualizacją listy:")
+	for _, item := range *items {
+		fmt.Printf("  - %s (folder: %v)\n", item.Name, item.IsDir)
 	}
 
-	showCurrentPathLabel.SetText(fmt.Sprintf("Ścieżka: %s", *currentPath))
-	list.Refresh()
+	// Aktualizujemy zawartość listy
+	entries, err := os.ReadDir(path)
+	if err != nil {
+		return err
+	}
+
+	var updatedItems []fileops.FileItem
+	for _, entry := range entries {
+		updatedItems = append(updatedItems, fileops.FileItem{
+			Name:  entry.Name(),
+			Path:  filepath.Join(path, entry.Name()),
+			IsDir: entry.IsDir(),
+		})
+	}
+
+	// Nadpisujemy wskaźnik
+	*items = updatedItems
+
+	// Logowanie po aktualizacji
+	fmt.Println("Po aktualizacji listy:")
+	for _, item := range *items {
+		fmt.Printf("  - %s (folder: %v)\n", item.Name, item.IsDir)
+	}
+
+	return nil
 }
 

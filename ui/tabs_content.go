@@ -6,7 +6,6 @@ import (
 	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/widget"
 	"file_manager/fileops"
-    "fmt"
 )
 
 // TabState holds the state of a single tab.
@@ -57,14 +56,15 @@ func CreateTabContent(
 	return content, tabState
 }
 
-
 func UpdateTabContent(myWindow fyne.Window, state *TabState) {
+	// Aktualizujemy listę plików i folderów
 	err := fileops.UpdateList(*state.CurrentPath, state.Items)
 	if err != nil {
 		dialog.ShowError(err, myWindow)
 		return
 	}
-	state.ShowPathLabel.SetText(fmt.Sprintf("Ścieżka: %s", *state.CurrentPath))
+
+	// Odświeżamy komponent listy
 	state.List.Refresh()
 }
 

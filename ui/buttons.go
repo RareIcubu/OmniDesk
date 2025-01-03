@@ -12,7 +12,6 @@ import (
 
 // CreateGlobalButtons creates global buttons that interact with the active tab.
 func CreateGlobalButtons(myWindow fyne.Window, tabs *container.DocTabs, tabStates map[*container.TabItem]*TabState) *fyne.Container {
-	// Back Button
 	backButton := widget.NewButton("Wróć", func() {
 		currentTab := tabs.Selected()
 		if currentTab == nil {
@@ -30,7 +29,6 @@ func CreateGlobalButtons(myWindow fyne.Window, tabs *container.DocTabs, tabState
 		}
 	})
 
-	// Enter Folder Button
 	enterButton := widget.NewButton("Wejdź", func() {
 		currentTab := tabs.Selected()
 		if currentTab == nil {
@@ -47,7 +45,6 @@ func CreateGlobalButtons(myWindow fyne.Window, tabs *container.DocTabs, tabState
 		}
 	})
 
-	// Edit File Button
 	editButton := widget.NewButton("Edytuj", func() {
 		currentTab := tabs.Selected()
 		if currentTab == nil {
@@ -61,7 +58,7 @@ func CreateGlobalButtons(myWindow fyne.Window, tabs *container.DocTabs, tabState
 
 			// Add a new tab for editing
 			editContent := CreateEditTabContent(myWindow, file.Path, tabs)
-			editTab := container.NewTabItem(file.Name, editContent)
+			editTab := container.NewTabItem("Edycja: "+file.Name, editContent)
 			tabs.Append(editTab)
 			tabs.Select(editTab)
 		} else {
@@ -69,52 +66,36 @@ func CreateGlobalButtons(myWindow fyne.Window, tabs *container.DocTabs, tabState
 		}
 	})
 
+	sortButton := widget.NewButton("Sortuj", func() {
+		currentTab := tabs.Selected()
+		if currentTab == nil {
+			dialog.ShowError(errors.New("Brak aktywnej karty"), myWindow)
+			fileops.Logger.Println("Brak aktywnej karty")
+			return
+		}
 
-    sortButton := widget.NewButton("Sortuj", func() {
-	    currentTab := tabs.Selected()
-	    if currentTab == nil {
-		    dialog.ShowError(errors.New("Brak aktywnej karty"), myWindow)
-		    fileops.Logger.Println("Brak aktywnej karty")
-		    return
-	    }
+		state := tabStates[currentTab]
 
-	    state := tabStates[currentTab]
-	    if state == nil {
-		    dialog.ShowError(errors.New("Nie można znaleźć stanu dla aktywnej karty"), myWindow)
-		    fileops.Logger.Println("Nie można znaleźć stanu dla aktywnej karty")
-		    return
-	    }
+		// Sprawdzanie, czy lista nie jest pusta
+		if state.Items == nil || len(*state.Items) == 0 {
+			dialog.ShowInformation("Błąd", "Nie ma nic do posortowania!", myWindow)
+			return
+		}
 
-	    // Sortowanie elementów
-	    fileops.SortItems(state.Items)
+		// Sortowanie elementów
+		fileops.SortItems(state.Items)
 
-	    // Aktualizacja wyświetlenia po sortowaniu
-	    UpdateTabContent(myWindow, state)
-    })
-	// Open Folder Button
-	openFolderButton := widget.NewButton("Otwórz folder", func() {
-		 dialog.ShowFolderOpen(func(uri fyne.ListableURI, err error) {
-			if uri != nil {
-				currentPath := uri.Path()
-				newItems := []fileops.FileItem{}
-				newSelectedIndex := -1
-				newShowPathLabel := CreateCurrentPathLabel(currentPath)
+		// Reset indeksu zaznaczenia
+		*state.SelectedIndex = -1
 
-				newTabContent, newTabState := CreateTabContent(myWindow, &currentPath, &newItems, &newSelectedIndex, newShowPathLabel, tabs)
-				newTab := container.NewTabItem(filepath.Base(currentPath), newTabContent)
-
-				tabs.Append(newTab)
-				tabStates[newTab] = newTabState
-				tabs.Select(newTab)
-                if err != nil {
-			        dialog.ShowError(err, myWindow)
-		        }
-			}
-		}, myWindow)
-		
+		// Aktualizacja listy w GUI
+		state.List.Refresh()
 	})
 
-	// Info Button
+	openFolderButton := widget.NewButton("Otwórz folder", func() {
+		fileops.OpenFolderDialog(myWindow, nil, nil)
+	})
+
 	infoButton := widget.NewButton("Info", func() {
 		currentTab := tabs.Selected()
 		if currentTab == nil {
@@ -130,7 +111,6 @@ func CreateGlobalButtons(myWindow fyne.Window, tabs *container.DocTabs, tabState
 		}
 	})
 
-	// Search Button
 	searchButton := widget.NewButton("Szukaj", func() {
 		currentTab := tabs.Selected()
 		if currentTab == nil {

@@ -108,20 +108,18 @@ func CreateList(items *[]FileItem, selectedIndex *int) *widget.List {
 	)
 }
 
+// SortItems sorts the provided list of FileItem structs alphabetically by Name.
 func SortItems(items *[]FileItem) {
-	if items == nil || len(*items) == 0 {
-		return // Nie ma czego sortować
-	}
-
-	sort.Slice(*items, func(i, j int) bool {
-		// Najpierw sortuj foldery przed plikami
+	sort.SliceStable(*items, func(i, j int) bool {
+		// Foldery mają być zawsze wyżej niż pliki
 		if (*items)[i].IsDir && !(*items)[j].IsDir {
 			return true
 		}
 		if !(*items)[i].IsDir && (*items)[j].IsDir {
 			return false
 		}
-		// Następnie sortuj alfabetycznie
+		// Sortuj alfabetycznie
 		return (*items)[i].Name < (*items)[j].Name
 	})
 }
+
