@@ -20,25 +20,24 @@ type FileItem struct {
 	IsDir bool
 }
 
-// OpenFolderDialog wyświetla dialog do wyboru folderu i aktualizuje listę.
-func OpenFolderDialog(win fyne.Window, items *[]FileItem, list *widget.List) {
+func OpenFolderDialog(win fyne.Window, onFolderSelect func(fyne.ListableURI), onCancel func()) {
 	Logger.Println("Otwarcie dialogu wyboru folderu")
-    dialog.ShowFolderOpen(
+	dialog.ShowFolderOpen(
 		func(listable fyne.ListableURI, err error) {
 			if err != nil {
-                Logger.Println("Błąd podczas otwierania folderu:", err)
+				Logger.Println("Błąd podczas otwierania folderu:", err)
 				dialog.ShowError(err, win)
 				return
 			}
-			if listable != nil {
-                Logger.Printf("Otwarto folder: %s\n", listable.Path())
-				UpdateListFromURI(listable, items, list, win)
+			if listable != nil && onFolderSelect != nil {
+				onFolderSelect(listable)
+			} else if onCancel != nil {
+				onCancel()
 			}
 		},
 		win,
 	)
 }
-
 // UpdateListFromURI aktualizuje listę na podstawie URI.
 func UpdateListFromURI(listable fyne.ListableURI, items *[]FileItem, list *widget.List, win fyne.Window) {
 	children, err := listable.List()
