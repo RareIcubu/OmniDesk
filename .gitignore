@@ -2,3 +2,4 @@ omnidesk
 *.mod
 *.sum
 *.log
+.env
