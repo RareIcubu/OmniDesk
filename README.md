@@ -120,7 +120,6 @@ go build -o omnidesk cmd/main.go
 │   ├── buttons.go             # Definicje przycisków interfejsu
 │   ├── current_path_label.go  # Etykiety z bieżącą ścieżką
 │   ├── edit_tab.go            # Zakładki edycji plików
-│   ├── file_editor.go         # Edytor plików
 │   ├── file_list.go           # Lista plików i folderów
 │   ├── file_menu.go           # Menu aplikacji
 │   ├── main_window.go         # Główne okno aplikacji
